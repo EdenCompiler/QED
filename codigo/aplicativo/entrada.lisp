@@ -1,0 +1,22 @@
+(in-package #:qed.aplicativo)
+
+(defun iniciar-executavel ()
+  "Entrada da imagem SBCL compilada, sem precisar carregar fontes ou Quicklisp."
+  (handler-case
+      (let ((argumentos (uiop:command-line-arguments)))
+        (when (member "--ajuda" argumentos :test #'equal)
+          (format t "QED — jogo de regras e provas~%~%F1 personagem | F2 pausa | F4 mundo | F6 ontologia | F8 guia~%Ctrl+Enter aplica a biblioteca. Enter libera a área selecionada na árvore.~%~%Opções: --ontologia --mundo --sem-salvar --oculta --quadros N --duracao N --captura arquivo.ppm~%")
+          (uiop:quit 0))
+        (unless ft2:*library* (setf ft2:*library* (ft2:make-freetype)))
+        (flet ((opcao (nome) (second (member nome argumentos :test #'equal))))
+          (executar :salvar (not (member "--sem-salvar" argumentos :test #'equal))
+                    :oculta (member "--oculta" argumentos :test #'equal)
+                    :ontologia (member "--ontologia" argumentos :test #'equal)
+                    :mundo-ampliado (member "--mundo" argumentos :test #'equal)
+                    :quadros (and (opcao "--quadros") (parse-integer (opcao "--quadros")))
+                    :duracao (and (opcao "--duracao") (parse-integer (opcao "--duracao")))
+                    :captura (and (opcao "--captura") (pathname (opcao "--captura"))))))
+    (error (erro)
+      (format *error-output* "Não foi possível iniciar QED: ~A~%" erro)
+      (uiop:quit 1)))
+  (uiop:quit 0))

@@ -18,6 +18,7 @@
   :components ((:file "codigo/aplicativo/pacote") (:file "codigo/aplicativo/editor")
                (:file "codigo/aplicativo/guia")
                (:file "codigo/aplicativo/arte") (:file "codigo/aplicativo/grafica")
+               (:file "codigo/aplicativo/tema")
                (:file "codigo/aplicativo/ontologia")
                (:file "codigo/aplicativo/janela") (:file "codigo/aplicativo/entrada")))
 

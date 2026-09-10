@@ -1,113 +1,137 @@
+<div align="center">
+
 # QED
 
-QED implementa o núcleo e o editor de um RPG incremental lateral em que o
-autômato só age depois que uma regra ou prova justifica sua ação. O Guerreiro
-usa regras de produção; o Mago usa unificação e resolução SLD.
+**Escreva a lógica. Observe a aventura.**
 
-O núcleo, o editor e os assets estão integrados. A arte atual foi produzida
-com geração de imagem, por solicitação do usuário, e preparada no Aseprite
-em display virtual. A direção visual é fantasia séria, com personagens em
-64 × 64. Veja os [originais e o processo](art-source/README.md).
+Um RPG incremental de fantasia arcana, em pixel art, onde cada ação precisa de uma justificativa.
 
-Todo o código, as mensagens e a documentação do projeto estão em português
-brasileiro. A forma canônica da DSL permanece em inglês para garantir uma
-representação interna única, mas o editor aceita português, inglês e misturas
-dos dois idiomas.
+**Linux · Um jogador · Protótipo jogável**
 
-## Executar
+[Jogar](#jogar-no-linux) · [Como funciona](#a-lógica-é-seu-controle) · [Ontologia](#conhecimento-muda-o-que-é-possível) · [Documentação](#por-dentro-do-grimório)
 
-Requisitos já usados pelo projeto:
+</div>
 
-- SBCL e Quicklisp;
-- LWLGL 2.2 disponível pelo ASDF;
-- `cl-freetype2`, FiveAM e as bibliotecas nativas GLFW, OpenGL e FreeType;
-- um driver OpenGL 3.3.
+![Guerreiro em combate na floresta, com a interface de QED](documentacao/imagens/mundo.png)
 
-Na raiz do projeto:
+Na clareira de ruínas, seus autômatos exploram, recolhem madeira e enfrentam
+slimes. Você escreve os teoremas que orientam suas decisões. Uma premissa
+verdadeira pode justificar um golpe; uma prova pode dar forma a uma centelha.
+Quando a lógica falha, o personagem espera — e o diagnóstico explica por quê.
 
-```sh
-make executar
+## A lógica é seu controle
+
+**Guerreiro — decida pelas circunstâncias.** Organize regras por prioridade:
+fuja quando a vida estiver baixa, ataque uma ameaça próxima e recolha madeira
+quando o caminho estiver livre. A primeira regra aplicável determina a ação.
+
+**Mago — prove antes de agir.** Combine fatos do mundo e axiomas para justificar
+deslocamento, coleta, fuga e magia. Acompanhe os passos da prova e seu custo de
+mana. Um alvo molhado pode ser a peça que faltava para provar um relâmpago.
+
+```lisp
+(theorem combat
+  :class fighter
+  :priority 30
+  :premises ((enemy-in-range :melee))
+  :conclusion (attack :basic))
 ```
 
-Para compilar e testar o executável local:
+Os exemplos são escritos em inglês. O editor também aceita português e os dois
+idiomas no mesmo documento. As bibliotecas
+[do Guerreiro](exemplos/warrior.lisp) e [do Mago](exemplos/wizard.lisp)
+já fazem os personagens agir; você pode experimentar aos poucos.
+Uma edição inválida preserva a última biblioteca aplicada.
+
+![Biblioteca do Mago e diagnóstico da prova ao lado do mundo](documentacao/imagens/teoremas.png)
+
+## Conhecimento muda o que é possível
+
+A árvore de habilidades é uma **árvore de ontologia**. Cada área libera
+conceitos que passam a funcionar nos seus teoremas.
+
+![Árvore do Mago com Condução liberada e Tempestade disponível](documentacao/imagens/ontologia.png)
+
+| Caminho | O que você aprende |
+|---|---|
+| Guerreiro: **Estados** | Consultar propriedades mutáveis, como um alvo molhado. |
+| Guerreiro: **Impacto** | Justificar o golpe pesado. |
+| Mago: **Condução → Tempestade** | Relacionar umidade e condutividade para provar relâmpagos. |
+| Ambos: **Composição** | Ampliar a biblioteca com um quinto espaço de teorema. |
+
+Cada personagem ganha um ponto de conhecimento aos **30, 60 e 100 XP**.
+Você escolhe onde gastá-lo. Madeira concede 2 XP; slimes, 10 XP.
+
+Guerreiro e Mago mantêm progresso, bibliotecas e mapas separados. Só o ativo
+avança. O jogo continua sem foco, salva ao fechar e não concede ganhos offline.
+
+## Jogar no Linux
+
+Você precisará de **SBCL, Quicklisp, LWLGL 2.2**, `cl-freetype2` e FiveAM,
+além de GLFW, FreeType e um driver **OpenGL 3.3**. O LWLGL deve estar disponível
+pelo ASDF, com seu módulo nativo STB compilado. Veja a
+[preparação do ambiente](documentacao/DESENVOLVIMENTO.md).
+
+Com as dependências preparadas:
 
 ```sh
+git clone https://github.com/EdenCompiler/QED.git
+cd QED
 make compilar
 ./build/qed
 ```
 
-O executável contém o runtime SBCL e os sistemas compilados. Ele usa os assets
-desta pasta e as bibliotecas nativas instaladas nesta máquina. Para testar
-sem ler nem gravar sua partida, use `./build/qed --sem-salvar`.
+Também é possível iniciar pelo código com `make executar`. O executável é uma
+compilação local: mantenha a pasta do projeto e seus assets disponíveis.
+Ainda não há pacote de distribuição independente. Janela recomendada: **1440×900**;
+a interface também foi verificada em **1280×800**.
 
-O launcher localiza o Quicklisp em `~/quicklisp/setup.lisp`. Para outra
-instalação, informe o arquivo com `QED_QUICKLISP`. Para usar outra fonte
-monoespaçada, informe um TTF com `QED_FONTE`.
+**Sua primeira experiência:** observe a biblioteca inicial, abra **Ontologia**
+para conhecer os conceitos e use **Guia** para consultar exemplos. Volte a
+**Teoremas**, faça uma alteração e pressione **Ctrl+Enter** para aplicá-la.
+A pausa é manual, pelo botão **Pausar** ou por **F2**.
 
-Controles:
-
-| Tecla | Ação |
+| Controle | Ação |
 |---|---|
-| `Ctrl+Enter` | valida e aplica a biblioteca exibida |
-| `Ctrl+S` | salva progresso, biblioteca ativa e rascunhos |
-| `Ctrl+Z` / `Ctrl+Y` | desfaz/refaz a edição |
-| `F1` | alterna entre Guerreiro e Mago |
-| `F2` | pausa/retoma a simulação |
-| `F3` | alterna diagnóstico em português, inglês e automático |
-| `F4` | alterna entre editor e vista ampliada do mundo |
-| `F5` | recarrega e valida os assets exportados |
-| `F6` | abre a árvore de ontologia; clique nas áreas ou use as setas |
-| `Enter` na árvore | gasta um ponto e libera a área selecionada, se os requisitos forem atendidos |
-| `F7` na árvore ou no guia | copia o exemplo para colar no editor |
-| `F8` | abre o guia de jogo |
-| Roda do mouse no diagnóstico | percorre premissas e árvore de prova |
-| `Esc` | salva e fecha |
+| Botões superiores | Mundo, Teoremas, Ontologia, Guia e pausa |
+| `F1` | Alternar Guerreiro / Mago |
+| `Ctrl+Enter` | Validar e aplicar a biblioteca |
+| `Ctrl+S` | Salvar progresso e rascunhos |
+| `F4` / `F6` / `F8` | Mundo / Ontologia / Guia |
+| Setas e `Enter` na árvore | Selecionar uma área e desbloqueá-la |
+| `F7` na árvore ou no guia | Copiar o exemplo para o clipboard |
+| `Esc` | Salvar e sair |
 
-Os 26 pares de PNG e metadados estão em `assets/`. Os personagens têm dois
-pixels de arte por unidade do mapa: em `F4`, com janela de pelo menos
-960 × 668, a vista mostra os pixels dos sprites na resolução nativa. A prévia
-menor ao lado do editor reduz os personagens. A física conserva a escala do mapa.
+<details>
+<summary>Mais controles e arquivos de partida</summary>
 
-Aos 30, 60 e 100 XP, cada personagem recebe um ponto de conhecimento. As
-escolhas na árvore liberam vocabulário real para os avaliadores: Estados,
-Impacto e Composição para Guerreiro; Condução, Tempestade e Composição para
-Mago. Tempestade exige Condução; Composição libera o quinto slot. Escolhas e
-saldo são separados por personagem e persistem ao fechar. Partidas anteriores
-são migradas preservando o vocabulário já disponível.
+O editor suporta seleção com mouse e Shift, copiar/recortar/colar,
+`Ctrl+Z` para desfazer e `Ctrl+Y` para refazer. A roda percorre o painel sob o
+cursor. `F3` alterna o idioma dos diagnósticos; `F5` recarrega os assets.
 
-## Desenvolvimento
+Sua partida fica em `~/.local/share/qed/partida.sexp`, ou em
+`$XDG_DATA_HOME/qed/partida.sexp`, com backup. Para experimentar uma sessão nova
+sem ler nem gravar seu progresso, use `./build/qed --sem-salvar`.
 
-```sh
-make testar
-make simular
-make verificar-interface
-make ensaio-30-minutos
-make arte
-make exportar-arte
-make verificar-arte
-```
+</details>
 
-`make testar` executa os avaliadores sem abrir uma janela. `make simular`
-avança os dois personagens por 30 minutos simulados. `make
-verificar-interface` abre uma janela oculta, testa edição Unicode, alternância,
-redimensionamento e gera `build/interface.ppm` para inspeção visual.
-`make ensaio-30-minutos` mantém a aplicação em execução por 30 minutos reais,
-com edição, pausa, alternância e janela oculta, sem gravar o progresso pessoal.
-Os resultados e os limites da verificação estão no
-[registro de validação](documentacao/VALIDACAO.md).
+## Por dentro do grimório
 
-`make arte` importa as imagens já geradas, sem chamar serviços de IA, e recria
-os projetos e exports. `make exportar-arte` exporta os projetos Aseprite
-existentes e produz GIFs de revisão. Ambos usam Xvfb; nenhuma janela Aseprite
-aparece no desktop. `make verificar-arte` requer Python e Pillow.
+Esta versão contém uma floresta de três telas, combate, coleta, saltos
+automáticos, morte e reaparecimento, duas classes, editor e progressão por
+escolhas. É uma primeira fatia jogável em desenvolvimento; classes adicionais,
+equipamentos extensos e multiplayer ficam fora desta versão.
 
-O projeto está dividido em sistemas ASDF independentes:
+O jogo é escrito em **Common Lisp**, com código e documentação em português
+brasileiro. A simulação funciona independentemente da renderização.
 
-- `qed/core`: mundo, entidades, física, progressão e executor de intenções;
-- `qed/logic`: leitura segura, normalização bilíngue e avaliadores;
-- `qed/app`: editor, fonte, renderização LWLGL e integração dos assets;
-- `qed/tests`: testes sem dependência gráfica.
+- [Linguagem dos teoremas](documentacao/DSL.md)
+- [Compilar, testar e contribuir](documentacao/DESENVOLVIMENTO.md)
+- [Interface: referências e decisões aplicadas](documentacao/UI.md)
+- [Arte e projetos editáveis](art-source/README.md)
+- [Arquitetura](documentacao/ARQUITETURA.md) · [Validação e limites conhecidos](documentacao/VALIDACAO.md)
 
-Leia [a especificação da DSL](documentacao/DSL.md), [o pipeline de
-arte](documentacao/ARTE.md) e [as decisões técnicas](documentacao/ARQUITETURA.md)
-antes de estender a fatia.
+Os sprites e os assets da interface usam imagens geradas por IA, preparadas e
+exportadas no Aseprite. Os originais, projetos editáveis e
+[prompts da interface](art-source/interface/PROMPTS.md) acompanham o repositório.
+As imagens deste README são capturas do jogo em execução.

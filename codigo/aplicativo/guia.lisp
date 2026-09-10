@@ -9,33 +9,11 @@
         (t chave)))
 
 (defun exemplo-do-guia (heroi)
-  "Texto copiável; nunca aplica nem substitui a biblioteca do jogador."
-  (if (eq (heroi-classe heroi) :fighter)
-      (if (area-liberada-p heroi (if (eq (heroi-classe heroi) :fighter) "impacto" "tempestade"))
-          "(teorema combater
-  :classe guerreiro :prioridade 30
-  :premissas ((inimigo-em-alcance :corpo-a-corpo))
-  :conclusao (atacar :golpe-pesado))"
-          "(teorema combater
-  :classe guerreiro :prioridade 30
-  :premissas ((inimigo-em-alcance :corpo-a-corpo))
-  :conclusao (atacar :basico))")
-      (if (area-liberada-p heroi (if (eq (heroi-classe heroi) :fighter) "impacto" "tempestade"))
-          "(teorema relampago
-  :classe mago :prioridade 40
-  :objetivo (provar (atinge relampago inimigo)
-    :dado ((molhado inimigo))
-    :usando-axiomas (afinidade-elemental
-      conducao-tempestade lei-relampago))
-  :ao-sucesso (manifestar :raio :alvo inimigo)
-  :ao-falha (falhar :motivo))"
-          "(teorema centelha-defensiva
-  :classe mago :prioridade 30
-  :objetivo (provar (atinge centelha inimigo)
-    :dado ((inimigo-proximo))
-    :usando-axiomas (afinidade-elemental lei-centelha))
-  :ao-sucesso (manifestar :centelha :alvo inimigo)
-  :ao-falha (falhar :motivo))")))
+  "Texto copiável em inglês, compartilhado com a árvore de ontologia."
+  (let ((id (if (eq (heroi-classe heroi) :fighter)
+                (if (area-liberada-p heroi "impacto") "impacto" "conflito")
+                (if (area-liberada-p heroi "tempestade") "tempestade" "afinidade"))))
+    (getf (buscar-area heroi id) :exemplo)))
 
 (defun linhas-do-guia (heroi biblioteca)
   (append
@@ -53,15 +31,15 @@
    (loop for (xp chave) in (marcos-progressao (heroi-classe heroi)) collect
      (format nil "~A ~D XP: ~A" (if (>= (heroi-xp heroi) xp) "[RECEBIDO]" "[PENDENTE]") xp (nome-conhecimento chave)))
    (when (and (eq (heroi-classe heroi) :fighter) (area-liberada-p heroi "estados"))
-     '("Consulta liberada: (status inimigo :molhado). Use-a como premissa para consultar o estado do alvo."))
+     '("Consulta liberada: (status enemy :wet). Use-a como premissa para consultar o estado do alvo."))
    (list "" "EXEMPLO DISPONÍVEL — F7 COPIA"
          (if (eq (heroi-classe heroi) :fighter)
-             "Substitua o teorema combater por este exemplo; não duplique o nome."
-             (if (area-liberada-p heroi "composicao")
-                 "Adicione relampago como quinto teorema. O slime na área úmida permite condução."
-                 (if (area-liberada-p heroi (if (eq (heroi-classe heroi) :fighter) "impacto" "tempestade"))
-                     "Até obter o quinto slot, substitua centelha-defensiva por este exemplo. Relâmpago exige alvo molhado; centelha funciona em alvos secos."
-                     "Substitua centelha-defensiva por este exemplo para restaurar a prova inicial."))))
+             "Substitua seu teorema de ataque por este exemplo; não duplique o nome."
+             (if (area-liberada-p heroi "tempestade")
+                 (if (area-liberada-p heroi "composicao")
+                     "Adicione lightning-strike como quinto teorema. O slime na área úmida permite condução."
+                     "Até obter o quinto slot, substitua seu teorema de centelha por este exemplo. Relâmpago exige alvo molhado; centelha funciona em alvos secos.")
+                 "Substitua seu teorema de centelha por este exemplo para restaurar a prova inicial.")))
    (uiop:split-string (exemplo-do-guia heroi) :separator '(#\Newline))
    '("" "Copiar não muda a biblioteca. Volte com F8, selecione a definição a substituir e cole com Ctrl+V. Aplique com Ctrl+Enter."
      "F6 abre a árvore de ontologia. Aos 30, 60 e 100 XP, você recebe um ponto para escolher uma área. Cada personagem possui suas próprias escolhas."

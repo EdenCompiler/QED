@@ -74,5 +74,6 @@ com a gravação automática desativada para preservar os arquivos problemático
 - Clipboard em janelas ocultas não é confiável no backend Wayland. O ensaio
   oculto usa X11 quando `DISPLAY` está disponível; a aplicação visível segue a
   mesma preferência para manter clipboard Unicode consistente.
-- A validação de arte exige PNG RGBA com transparência binária e a paleta fixa.
-  Sprites exportados fora desse contrato são recusados com uma mensagem clara.
+- A validação dos sprites exige PNG RGBA com transparência binária e a paleta
+  indexada compartilhada. A interface usa RGBA independente, com dimensões
+  verificadas pelo carregador. Veja [o contrato da interface](UI.md).

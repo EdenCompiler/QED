@@ -3,7 +3,7 @@
 (defstruct (sessao (:constructor criar-sessao)) mundos bibliotecas rascunhos (ativa 0) (idioma :pt) (pausada nil))
 (defun fonte-exemplo (classe)
   (uiop:read-file-string (asdf:system-relative-pathname "qed/logic"
-                          (if (eq classe :wizard) "exemplos/mago.lisp" "exemplos/guerreiro.lisp"))
+                          (if (eq classe :wizard) "exemplos/wizard.lisp" "exemplos/warrior.lisp"))
                         :external-format :utf-8))
 (defun nova-sessao ()
   (criar-sessao :rascunhos (vector (fonte-exemplo :fighter) (fonte-exemplo :wizard)) :mundos (vector (novo-mundo :fighter) (novo-mundo :wizard))

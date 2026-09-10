@@ -104,3 +104,31 @@ Capturas inspecionadas: `build/ontologia-compilada.png` e
 projeto e as bibliotecas nativas instaladas nesta máquina.
 
 A sessão de 30 minutos reais ainda não foi repetida após estas alterações.
+
+## Tema arcano e exemplos em inglês — 10 de setembro de 2026
+
+A interface integra 19 novos PNGs: seis molduras, doze selos e um fundo.
+`make verificar-arte-interface` passou para dimensões, transparência binária,
+margens e projetos Aseprite. A exportação foi executada em Xvfb, sem janela
+visível, a partir dos originais gerados com `image_gen`.
+
+`make testar` permaneceu em 171/171. A comparação das bibliotecas iniciais em
+português e inglês confirmou ASTs equivalentes após renomear os exemplos e
+estados resumidos idênticos após 5.000 ticks de cada classe. Os teoremas e lemas
+publicados na árvore e no guia também foram validados. O exemplo de relâmpago
+usa `lightning-strike`, evitando a constante reservada `lightning` como nome.
+Os arquivos iniciais agora são `exemplos/warrior.lisp` e `exemplos/wizard.lisp`;
+o carregador usa esses nomes. Bibliotecas já salvas pelo jogador são preservadas.
+
+O ensaio `make verificar-interface` passou com navegação espacial, limites da
+árvore, detecção de cliques, troca de telas, pausa, Unicode, clipboard e
+redimensionamento para 1280×800. As capturas reais das quatro telas em
+1440×900 estão em `documentacao/imagens/`. A revisão corrigiu texto cortado,
+margens junto aos ornamentos e quebra de palavras no guia.
+
+`make compilar` gerou novamente `build/qed`; o executável iniciou uma sessão
+nova em janela oculta com a árvore, sem assets pendentes. Os ensaios usaram
+`--sem-salvar`. O README agora apresenta o jogo com capturas e instruções de
+primeira experiência; a pesquisa aplicada está em [UI.md](UI.md).
+
+Não foi repetida uma sessão de trinta minutos reais nesta atualização.

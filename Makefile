@@ -17,3 +17,9 @@ exportar-arte:
 	bash art-source/exportar.sh
 verificar-arte:
 	python3 art-source/verificar.py
+
+.PHONY: arte-interface verificar-arte-interface
+arte-interface:
+	bash art-source/interface/exportar.sh
+verificar-arte-interface:
+	python3 art-source/interface/verificar.py

@@ -13,6 +13,11 @@
     ("madeira" "idle") ("terreno" "idle") ("magia" "spark" "lightning") ("icones" "idle")
     ("agua" "idle") ("cenario" "idle")))
 (defun diretorio-assets () (asdf:system-relative-pathname "qed/app" "assets/"))
+(defparameter *interface-exigida*
+  (append (mapcar (lambda (nome) (list nome 256 256)) '("painel" "grimorio" "bloqueado" "liberado" "selecionado" "botao"))
+          (mapcar (lambda (nome) (list nome 96 96)) '("existencia" "espaco" "materia" "conflito" "estados" "impacto"
+                    "afinidade" "conducao" "tempestade" "composicao" "cadeado" "conhecimento"))
+          '(("fundo" 960 540))))
 (defun especificacao-animacao (grupo estado)
   (let* ((personagem (member grupo '("guerreiro" "mago") :test #'equal))
          (animado (or personagem (equal grupo "slime")))
@@ -92,4 +97,18 @@
               (handler-case (setf (gethash nome tabela) (ler-animacao caminho (first grupo) estado))
                 (error (erro) (push (format nil "~A: ~A" nome erro) pendencias)))
               (push (concatenate 'string nome ".sexp + PNG") pendencias)))))
+    ;; A UI usa RGBA próprio, independente da paleta indexada dos sprites.
+    (dolist (item *interface-exigida*)
+      (destructuring-bind (nome largura altura) item
+        (let* ((chave (concatenate 'string "interface/" nome))
+               (arquivo (merge-pathnames (concatenate 'string chave ".png") diretorio)))
+          (handler-case
+              (progn
+                (multiple-value-bind (w h canais) (lwlgl.stb:image-info arquivo)
+                  (declare (ignore canais))
+                  (unless (and (= w largura) (= h altura)) (error "Dimensões de UI inválidas: ~A" nome)))
+                (setf (gethash chave tabela)
+                      (criar-animacao :arquivo arquivo :largura largura :altura altura
+                                     :quadros 1 :duracao 1000 :pivo '(0 0))))
+            (error (erro) (push (format nil "~A: ~A" chave erro) pendencias))))))
     (values tabela (nreverse pendencias))))

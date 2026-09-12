@@ -24,7 +24,7 @@
 
 (theorem explore
   :class wizard :priority 10
-  :goal (prove (can-move (nearest resource :wood))
+  :goal (prove (can-move (quest-target))
     :using-axioms (travel-law))
-  :on-success (move-to (nearest resource :wood))
+  :on-success (move-to (quest-target))
   :on-failure (fizzle :reason))

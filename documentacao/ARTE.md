@@ -7,10 +7,10 @@ e escolheu quadros de 64 × 64 para os personagens.
 
 ## Fontes e processamento
 
-Os cinco originais estão em `art-source/gerados/`: Guerreiro, Mago, caminhada
-revisada do Mago, elementos e cenário. Foram produzidos pela ferramenta integrada `image_gen`; os prompts
+Os originais estão em `art-source/gerados/`: personagens, elementos, três
+cenários, inimigos e objetos da campanha. Foram produzidos pela ferramenta integrada `image_gen`; os prompts
 estão em `art-source/referencias/PROMPTS-ASSETS.md`, `PROMPTS-CENARIO.md`
-e `PROMPT-CAMINHADA-MAGO.md`.
+e `PROMPT-CAMINHADA-MAGO.md`, além de `PROMPTS-CAMPANHA.md`.
 O estudo de direção anterior permanece como referência, sem ser recortado
 para fabricar os sprites finais.
 
@@ -39,19 +39,24 @@ fontes por corte mediano ponderado. O jogo valida cores e alfa binário.
 | Guerreiro | `idle`, `walk`, `attack`, `gather`, `hurt`, `death`, `jump` | 64 × 64, `(32 60)` |
 | Mago | anteriores mais `cast` | 64 × 64, `(32 60)` |
 | Slime | `idle`, `attack`, `hurt`, `death` | 64 × 64, `(32 60)` |
+| Sentinela | `idle`, `windup`, `attack`, `recovery`, `hurt`, `death` | 64 × 64, `(32 60)` |
+| Guardião | `idle`, `windup`, `attack`, `recovery`, `hurt`, `death` | 64 × 64, `(32 60)` |
+| Ferro e cristal | `idle` | 32 × 32, `(16 30)` |
+| Passagens e construções | `idle` | 64 × 64, pivô inferior central |
 | Madeira | `idle` | 16 × 16, `(8 15)` |
 | Terreno | `idle`, atlas com grama e solo | 16 × 16, `(0 0)` |
 | Magia | `spark`, `lightning` | 32 × 32, `(16 16)` |
 | Ícones | `idle`, atlas madeira, vida, mana e XP | 16 × 16, `(0 0)` |
 | Água | `idle` | 16 × 16, `(0 0)` |
-| Cenário | `idle` | 480 × 270, `(0 0)` |
+| Clareira, mina e ruínas | `idle` | 480 × 270, `(0 0)` |
 
 Guerreiro e Mago usam oito quadros por animação, exceto morte, com sete poses
 recebidas. Repouso: 100 ms; caminhada, ataque, coleta, salto e conjuração:
 75 ms; dano: 50 ms; morte: 125 ms. Slime usa oito quadros por estado: repouso
 e morte a 100 ms, ataque a 75 ms e dano a 50 ms. Somente repouso e caminhada
 dos personagens repetem. As durações específicas dos outros grupos estão
-nos metadados. Há 26 faixas e 170 quadros no total.
+nos metadados. Sentinela e Guardião usam preparação de 100 ms por quadro,
+ataque de 75 ms e recuperação de 150 ms. Há 48 faixas e 276 quadros no total.
 
 ## Reproduzir e editar
 

@@ -12,7 +12,7 @@ while IFS=$'\t' read -r grupo estado intervalo; do
   aseprite --batch --frame-range "$intervalo" "art-source/$grupo.aseprite" \
     --sheet-type horizontal --sheet "assets/$grupo/$estado.png" \
     --data "build/arte/$grupo-$estado.json"
-  if [[ "$grupo" == guerreiro || "$grupo" == mago || "$grupo" == slime ]]; then
+  if [[ "$grupo" == guerreiro || "$grupo" == mago || "$grupo" == slime || "$grupo" == sentinela || "$grupo" == guardiao ]]; then
     aseprite --batch --frame-range "$intervalo" "art-source/$grupo.aseprite" \
       --scale 4 --save-as "art-source/previas/$grupo-$estado.gif"
   fi

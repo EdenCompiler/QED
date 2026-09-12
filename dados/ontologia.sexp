@@ -7,17 +7,17 @@
  (:id "espaco" :titulo "Espaço" :classes (:fighter :wizard) :custo 0
   :requisitos ("existencia") :posicao (0 1)
   :descricao "Posição, distância, alcance e caminhos. Justifica deslocamento e fuga; o executor realiza os saltos."
-  :vocabulario ("position" "nearest" "within-range" "reachable" "move-to" "flee" "travel-law" "flee-law")
-  :exemplo "(move-to (nearest resource :wood))")
+  :vocabulario ("position" "nearest" "quest-target" "within-range" "reachable" "move-to" "flee" "travel-law" "flee-law")
+  :exemplo "(move-to (quest-target))")
  (:id "materia" :titulo "Matéria" :classes (:fighter :wizard) :custo 0
   :requisitos ("existencia") :posicao (1 1)
-  :descricao "Recursos e propriedades físicas. Identifica madeira e permite justificar a coleta."
-  :vocabulario ("resource-type" "resource-nearby" "interact" "wet" "gather-law")
-  :exemplo "(resource-type (nearest resource :wood) :wood)")
+  :descricao "Recursos, inventário e propriedades físicas. Madeira usa chop; ferro e cristal usam mine após a Oficina."
+  :vocabulario ("resource-type" "resource-nearby" "inventory" "gatherable" "interact :chop" "interact :mine" "wet" "gather-law")
+  :exemplo "(>= (inventory :iron-ore) 20)")
  (:id "conflito" :titulo "Conflito" :classes (:fighter) :custo 0
   :requisitos ("existencia") :posicao (2 1)
   :descricao "Ameaças e ataque básico. Regras relacionam a presença de um inimigo à ação de combate."
-  :vocabulario ("enemy-in-range" "nearest-threat" "attack :basic")
+  :vocabulario ("enemy-in-range" "enemy-state" "nearest-threat" "slime" "sentinel" "guardian" "attack :basic")
   :exemplo "(theorem combat
   :class fighter :priority 30
   :premises ((enemy-in-range :melee))
@@ -37,7 +37,7 @@
   :conclusion (attack :heavy-strike))")
  (:id "afinidade" :titulo "Afinidade" :classes (:wizard) :custo 0
   :requisitos ("existencia") :posicao (2 1)
-  :descricao "Relação entre foco e tempestade. Os axiomas iniciais permitem provar e manifestar centelha."
+  :descricao "Relação entre foco e tempestade. Centelha e relâmpago aceitam qualquer inimigo alcançável."
   :vocabulario ("affinity" "elemental-affinity" "spark-law" "strikes spark")
   :exemplo "(theorem defensive-spark
   :class wizard :priority 30

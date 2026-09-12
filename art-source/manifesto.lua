@@ -63,4 +63,37 @@ grupos[#grupos+1]={nome='terreno',fonte='elementos.png',largura=16,altura=16,piv
 grupos[#grupos+1]={nome='madeira',fonte='elementos.png',largura=16,altura=16,pivo={8,15},animacoes={animacao('idle',150,false,{celula(7,1)})}}
 grupos[#grupos+1]={nome='icones',fonte='elementos.png',largura=16,altura=16,pivo={0,0},animacoes={animacao('idle',1000,false,{celula(8,1),celula(8,3),celula(8,5),celula(8,7)})}}
 grupos[#grupos+1]={nome='cenario',fonte='cenario.png',largura=480,altura=270,pivo={0,0},animacoes={animacao('idle',1000,false,{{0,0,1672,941}})}}
+
+-- Campanha: folhas geradas especificamente para as duas regiões e seus habitantes.
+local largura_inimigo=1536/8
+local altura_inimigo=1024/6
+local function linha_inimigo(linha)
+  local celulas={}
+  for coluna=0,7 do celulas[#celulas+1]={coluna*largura_inimigo,(linha-1)*altura_inimigo,
+                                         largura_inimigo,altura_inimigo} end
+  return celulas
+end
+for _,dados in ipairs({{'sentinela','sentinela.png'},{'guardiao','guardiao.png'}}) do
+  grupos[#grupos+1]={nome=dados[1],fonte=dados[2],largura=64,altura=64,pivo={32,60},animacoes={
+    animacao('idle',100,true,linha_inimigo(1)),
+    animacao('windup',100,false,linha_inimigo(2)),
+    animacao('attack',75,false,linha_inimigo(3)),
+    animacao('recovery',150,false,linha_inimigo(4)),
+    animacao('hurt',50,false,linha_inimigo(5)),
+    animacao('death',125,false,linha_inimigo(6))}}
+end
+
+grupos[#grupos+1]={nome='mina',fonte='campanha-cenarios.png',largura=480,altura=270,pivo={0,0},
+  animacoes={animacao('idle',1000,false,{{0,0,836,941}})}}
+grupos[#grupos+1]={nome='ruinas',fonte='campanha-cenarios.png',largura=480,altura=270,pivo={0,0},
+  animacoes={animacao('idle',1000,false,{{836,0,836,941}})}}
+
+local largura_objeto=2172/8
+local function objeto(coluna) return {{(coluna-1)*largura_objeto,0,largura_objeto,724}} end
+for _,dados in ipairs({{'minerio',1,32,30},{'cristal',2,32,30},{'passagem-mina',3,64,62},
+                       {'passagem-observatorio',4,64,62},{'abrigo',5,64,62},
+                       {'oficina',6,64,62},{'arsenal',7,64,62},{'observatorio',8,64,62}}) do
+  grupos[#grupos+1]={nome=dados[1],fonte='campanha-objetos.png',largura=dados[3],altura=dados[3],
+    pivo={math.floor(dados[3]/2),dados[4]},animacoes={animacao('idle',1000,false,objeto(dados[2]))}}
+end
 return grupos

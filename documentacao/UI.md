@@ -11,7 +11,7 @@ Fontes primárias consultadas em 10 de setembro de 2026:
 | Referência | Aplicação em QED |
 |---|---|
 | [Xbox Accessibility Guideline 102 — Contraste](https://learn.microsoft.com/en-us/xbox/accessibility/xbox-accessibility-guidelines/102) | Fundos escurecidos sob texto, aumento da luminosidade do texto secundário e estados escritos: Liberada, 1 ponto, Requisitos e Sem pontos. |
-| [Xbox Accessibility Guideline 112 — Navegação](https://learn.microsoft.com/en-us/xbox/accessibility/xbox-accessibility-guidelines/112) | Mesmas abas nas quatro telas; setas acompanham a posição dos cartões; a árvore não retorna à borda oposta. |
+| [Xbox Accessibility Guideline 112 — Navegação](https://learn.microsoft.com/en-us/xbox/accessibility/xbox-accessibility-guidelines/112) | Mesmas abas nas cinco telas; setas acompanham a posição dos cartões; a árvore não retorna à borda oposta. |
 | [Xbox Accessibility Guideline 113 — Foco](https://learn.microsoft.com/en-us/xbox/accessibility/xbox-accessibility-guidelines/113) | Área selecionada com contorno de dois pixels e moldura própria; estado ativo das abas persistente e realce ao passar o mouse. |
 | [Godot — NinePatchRect](https://docs.godotengine.org/en/stable/classes/class_ninepatchrect.html) | Técnica de nove recortes implementada no renderer OpenGL: cantos conservam proporção, bordas e centro acomodam o tamanho do painel. O jogo não depende de Godot. |
 
@@ -22,10 +22,11 @@ reais de 1440×900 e 1280×800; não há auditoria de contraste de todos os pixe
 
 ## Organização e interação
 
-O cabeçalho mantém identidade da classe, estado da simulação, as quatro telas
-e o botão de pausa. Mundo destaca a ação e os recursos. Teoremas mantém editor
-e diagnóstico lado a lado. Ontologia reserva o painel direito para requisitos,
-vocabulário, exemplo e compra. Guia usa o mesmo painel de grimório.
+O cabeçalho mantém identidade da classe, estado da simulação, as cinco telas
+e o botão de pausa. Mundo destaca a ação, os recursos e o objetivo atual.
+Teoremas mantém editor e diagnóstico lado a lado. Ontologia reserva o painel
+direito para requisitos, vocabulário, exemplo e compra. Acampamento apresenta
+as quatro construções e valida seus custos. Guia usa o mesmo painel de grimório.
 
 As setas procuram cartões no setor da direção solicitada, favorecendo
 alinhamento e proximidade. Empates preservam a ordem dos dados. Ao chegar à
@@ -73,6 +74,6 @@ sbcl --script ferramentas/capturar-interface.lisp
 ```
 
 O script avança sessões novas pela simulação real, captura Guerreiro em
-combate, Mago com XP suficiente para liberar Condução e as quatro telas.
+combate, Mago com XP suficiente para liberar Condução e as cinco telas.
 Os arquivos PPM ficam em `build/capturas/`. A janela permanece oculta e nenhum
 save é lido ou gravado. As versões PNG no manual são conversões dessas capturas.

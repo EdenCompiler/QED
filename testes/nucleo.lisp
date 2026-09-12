@@ -164,6 +164,24 @@
      (novo-mundo :wizard))))
     (is (equal '((:mover 1)) (intencao-acoes (resultado-intencao resultado))))
     (is (= 0 (intencao-mana (resultado-intencao resultado))))))
+(test mago-coleta-em-plataforma-e-retoma-movimento
+  (let* ((mundo (novo-mundo :wizard))
+         (heroi (mundo-heroi mundo))
+         (madeira-elevada (buscar-entidade mundo 7))
+         (biblioteca (biblioteca-mago
+          "(theorem gather :class wizard :priority 60
+             :goal (prove (can-gather (nearest resource :wood)) :using-axioms (gather-law))
+             :on-success (interact :chop) :on-failure (fizzle :reason))
+           (theorem explore :class wizard :priority 50
+             :goal (prove (can-move (nearest resource :wood)) :using-axioms (travel-law))
+             :on-success (move-to (nearest resource :wood)) :on-failure (fizzle :reason))")))
+    (is (= (entidade-y madeira-elevada) (altura-chao mundo (entidade-x madeira-elevada))))
+    (setf (heroi-x heroi) (entidade-x madeira-elevada)
+          (heroi-y heroi) (entidade-y madeira-elevada))
+    (let ((madeira-antes (heroi-madeira heroi)))
+      (simular mundo (lambda (foto) (avaliar-biblioteca biblioteca foto)) 2)
+      (is (> (heroi-madeira heroi) madeira-antes))
+      (is (/= (heroi-x heroi) (entidade-x madeira-elevada))))))
 (test vocabulario-bloqueado
   (let ((mundo (novo-mundo)))
     (setf (heroi-x (mundo-heroi mundo)) 280)
@@ -394,3 +412,189 @@
     (signals erro-dsl (qed.logica::desserializar-mundo dados :wizard))
     (setf (getf (getf dados :heroi) :conhecimentos) '("conducao"))
     (signals erro-dsl (qed.logica::desserializar-mundo dados :wizard))))
+
+(test campanha-tem-sete-telas-e-passagens
+  (let* ((mundo (novo-mundo)) (heroi (mundo-heroi mundo)))
+    (is (= 3360 (mundo-largura mundo)))
+    (is (= 3 (length (mundo-regioes mundo))))
+    (is (null (rota-para mundo 1500)))
+    (setf (heroi-madeira heroi) 100)
+    (is (construir mundo :shelter))
+    (is (= 125 (heroi-hp-max heroi)))
+    (is (= 70 (heroi-madeira heroi)))
+    (setf (getf (heroi-abates heroi) :slime) 8)
+    (is (construir mundo :workshop))
+    (is (not (null (rota-para mundo 1500))))
+    (is (= 20 (heroi-madeira heroi)))
+    (is (null (construir mundo :workshop)))))
+
+(test construcoes-sao-atomicas-e-concedem-efeitos
+  (let* ((mundo (novo-mundo :wizard)) (heroi (mundo-heroi mundo)))
+    (setf (heroi-madeira heroi) 29)
+    (is (null (construir mundo :shelter)))
+    (is (= 29 (heroi-madeira heroi)))
+    (setf (heroi-madeira heroi) 200 (getf (heroi-abates heroi) :slime) 8)
+    (construir mundo :shelter) (construir mundo :workshop)
+    (setf (quantidade-material heroi :iron-ore) 40
+          (quantidade-material heroi :arcane-crystal) 10
+          (getf (heroi-abates heroi) :sentinel) 6)
+    (is (construir mundo :arsenal))
+    (is (= 4 (bonus-dano heroi)))
+    (is (construir mundo :observatory))
+    (is (= 100 (heroi-mana-max heroi)))
+    (is (= 80 (heroi-mana heroi)))
+    (is (not (null (rota-para mundo 2500))))))
+
+(test fatos-novos-e-aliases
+  (let* ((mundo (novo-mundo)) (heroi (mundo-heroi mundo))
+         (sentinela (buscar-entidade mundo 12)))
+    (setf (heroi-madeira heroi) 37 (entidade-fase sentinela) :windup)
+    (is (equal "inventory" (qed.logica::canonico "inventário")))
+    (is (equal "enemy-state" (qed.logica::canonico "estado-inimigo")))
+    (is (equal "quest-target" (qed.logica::canonico "alvo-da-missão")))
+    (is (equal "consultar" (nome-vencedor (avaliar-texto
+      "(theorem consultar :premises ((>= (inventory :wood) 30) (enemy-state 12 :windup)) :conclusion (wait))" mundo))))
+    (setf (heroi-madeira heroi) 0)
+    (is (= 1 (qed.logica::consultar '("quest-target") mundo)))
+    (is (qed.logica::consultar '("resource-type" 12 "enemy") mundo))))
+
+(test mineracao-exige-oficina-e-autoriza-material
+  (let* ((mundo (novo-mundo)) (heroi (mundo-heroi mundo))
+         (texto "(theorem mine-now :class fighter :premises () :conclusion (interact :mine))"))
+    (setf (heroi-x heroi) 1530)
+    (is (null (resultado-intencao (avaliar-texto texto mundo))))
+    (setf (heroi-construcoes heroi) '(:workshop :shelter)
+          (getf (heroi-abates heroi) :slime) 8)
+    (let ((intencao (resultado-intencao (avaliar-texto texto mundo))))
+      (is (not (null intencao)))
+      (is (equal '((:minerar 10)) (intencao-acoes intencao))))
+    (is (qed.logica::consultar '("gatherable" 10) mundo))))
+
+(test mineracao-do-mago-preserva-alvo-provado
+  (let* ((mundo (novo-mundo :wizard)) (heroi (mundo-heroi mundo))
+         (ferro (buscar-entidade mundo 13)) (cristal (buscar-entidade mundo 16))
+         (texto "(theorem mine-iron :class wizard
+                   :goal (prove (can-gather (nearest resource :iron-ore))
+                     :using-axioms (gather-law))
+                   :on-success (interact :mine)
+                   :on-failure (fizzle :reason))"))
+    (setf (heroi-construcoes heroi) '(:workshop :shelter)
+          (getf (heroi-abates heroi) :slime) 8
+          (entidade-x ferro) 100 (entidade-y ferro) 240
+          (entidade-x cristal) 101 (entidade-y cristal) 240
+          (heroi-x heroi) 101 (heroi-y heroi) 240)
+    ;; O cristal está mais perto no conjunto de minerais, porém a prova nomeia
+    ;; explicitamente o ferro. A intenção deve conservar esse vínculo.
+    (let ((intencao (resultado-intencao (avaliar-texto texto mundo))))
+      (is (not (null intencao)))
+      (is (equal '((:minerar 13)) (intencao-acoes intencao))))))
+
+(test sentinela-anuncia-ataca-e-recupera
+  (let* ((mundo (novo-mundo)) (heroi (mundo-heroi mundo)) (sentinela (buscar-entidade mundo 12))
+         (vazio (lambda (foto) (declare (ignore foto)) (criar-resultado))))
+    (setf (heroi-x heroi) 1700)
+    (let ((antes (entidade-x sentinela)))
+      (avancar mundo vazio)
+      (is (< (entidade-x sentinela) antes)))
+    (setf (heroi-x heroi) 1860)
+    (avancar mundo vazio)
+    (is (eq :windup (entidade-fase sentinela)))
+    (dotimes (i 48) (declare (ignore i)) (avancar mundo vazio))
+    (is (= 86 (heroi-hp heroi)))
+    (is (eq :recovery (entidade-fase sentinela)))
+    (dotimes (i 72) (declare (ignore i)) (avancar mundo vazio))
+    (is (eq :idle (entidade-fase sentinela)))))
+
+(test guardiao-mitigacao-vitoria-e-retorno-regional
+  (let* ((mundo (novo-mundo)) (heroi (mundo-heroi mundo)) (guardiao (buscar-entidade mundo 21)))
+    (setf (heroi-x heroi) 3200 (entidade-fase guardiao) :windup)
+    (qed.nucleo::iniciar-intencao mundo (criar-intencao :nome "teste" :acoes '((:atacar 21 ":basic"))))
+    (dotimes (i 20) (declare (ignore i)) (qed.nucleo::executar-acao mundo))
+    (is (= 291 (entidade-hp guardiao)))
+    (setf (heroi-acao heroi) nil (entidade-fase guardiao) :recovery)
+    (qed.nucleo::iniciar-intencao mundo (criar-intencao :nome "teste" :acoes '((:atacar 21 ":basic"))))
+    (dotimes (i 20) (declare (ignore i)) (qed.nucleo::executar-acao mundo))
+    (is (= 273 (entidade-hp guardiao)))
+    (setf (heroi-acao heroi) nil (entidade-hp guardiao) 1)
+    (qed.nucleo::iniciar-intencao mundo (criar-intencao :nome "fim" :acoes '((:atacar 21 ":basic"))))
+    (dotimes (i 20) (declare (ignore i)) (qed.nucleo::executar-acao mundo))
+    (is (= 1 (getf (heroi-abates heroi) :guardian)))
+    (qed.nucleo::atualizar-inimigos mundo)
+    (is (<= (entidade-hp guardiao) 0))
+    (setf (heroi-x heroi) 1800 (heroi-hp heroi) 0)
+    (dotimes (i 181) (declare (ignore i))
+      (avancar mundo (lambda (foto) (declare (ignore foto)) (criar-resultado))))
+    (is (= 1472 (heroi-x heroi)))))
+
+(test persistencia-v3-preserva-campanha
+  (let* ((mundo (novo-mundo)) (heroi (mundo-heroi mundo))
+         (biblioteca (biblioteca-guerreiro (fonte-exemplo :fighter))))
+    (setf (heroi-madeira heroi) 100 (getf (heroi-abates heroi) :slime) 8)
+    (construir mundo :shelter) (construir mundo :workshop)
+    (setf (quantidade-material heroi :iron-ore) 7 (heroi-x heroi) 1700)
+    (qed.nucleo::atualizar-campanha mundo)
+    (let* ((dados (qed.logica::serializar-mundo mundo biblioteca (biblioteca-texto biblioteca)))
+           (carregado (qed.logica::desserializar-mundo dados :fighter))
+           (outro (mundo-heroi carregado)))
+      (is (= 7 (quantidade-material outro :iron-ore)))
+      (is (construcao-pronta-p outro :workshop))
+      (is (member :mina (heroi-regioes-descobertas outro)))
+      (is (= 125 (heroi-hp-max outro))))
+    (let ((dados (qed.logica::serializar-mundo mundo biblioteca (biblioteca-texto biblioteca))))
+      (setf (getf (getf dados :heroi) :construcoes) '(:observatory))
+      (signals erro-dsl (qed.logica::desserializar-mundo dados :fighter)))))
+
+(defun biblioteca-guiada (classe tipo)
+  (ler-biblioteca
+   (if (eq classe :fighter)
+       (case tipo
+         (:wood "(theorem guided-gather :class fighter :premises () :conclusion (interact :chop))")
+         ((:iron-ore :arcane-crystal) "(theorem guided-mine :class fighter :premises () :conclusion (interact :mine))")
+         (otherwise "(theorem guided-combat :class fighter :premises () :conclusion (attack :basic))"))
+       (case tipo
+         (:wood "(theorem guided-gather :class wizard :goal (prove (can-gather (nearest resource :wood)) :using-axioms (gather-law)) :on-success (interact :chop) :on-failure (fizzle :reason))")
+         (:iron-ore "(theorem guided-mine :class wizard :goal (prove (can-gather (nearest resource :iron-ore)) :using-axioms (gather-law)) :on-success (interact :mine) :on-failure (fizzle :reason))")
+         (:arcane-crystal "(theorem guided-mine :class wizard :goal (prove (can-gather (nearest resource :arcane-crystal)) :using-axioms (gather-law)) :on-success (interact :mine) :on-failure (fizzle :reason))")
+         (otherwise "(theorem guided-combat :class wizard :goal (prove (strikes spark enemy) :using-axioms (elemental-affinity spark-law)) :on-success (manifest :spark :target enemy) :on-failure (fizzle :reason))")))
+   :classe classe))
+
+(defun executar-evento-guiado (mundo tipo)
+  (let* ((heroi (mundo-heroi mundo))
+         (alvo (find tipo (mundo-entidades mundo) :key #'entidade-tipo))
+         (biblioteca (biblioteca-guiada (heroi-classe heroi) tipo))
+         (antes (if (recurso-p alvo) (quantidade-material heroi tipo)
+                    (getf (heroi-abates heroi) tipo 0))))
+    (qed.nucleo::restaurar-entidade mundo alvo)
+    (when (inimigo-p alvo) (setf (entidade-hp alvo) 1))
+    (setf (heroi-x heroi) (- (entidade-x alvo) 10) (heroi-y heroi) 240
+          (heroi-mana heroi) (heroi-mana-max heroi))
+    (loop repeat 180
+          until (> (if (recurso-p alvo) (quantidade-material heroi tipo)
+                       (getf (heroi-abates heroi) tipo 0)) antes)
+          do (avancar mundo (lambda (foto) (avaliar-biblioteca biblioteca foto))))
+    (cancelar-acao mundo)
+    (> (if (recurso-p alvo) (quantidade-material heroi tipo)
+           (getf (heroi-abates heroi) tipo 0)) antes)))
+
+(test campanha-guiada-completa-pelas-duas-classes
+  (dolist (classe '(:fighter :wizard))
+    (let* ((mundo (novo-mundo classe)) (heroi (mundo-heroi mundo)))
+      (is (executar-evento-guiado mundo :wood))
+      (setf (heroi-madeira heroi) 30) (is (construir mundo :shelter))
+      (is (executar-evento-guiado mundo :slime))
+      (setf (getf (heroi-abates heroi) :slime) 8 (heroi-madeira heroi) 50)
+      (is (construir mundo :workshop))
+      (is (executar-evento-guiado mundo :iron-ore))
+      (setf (heroi-madeira heroi) 30 (quantidade-material heroi :iron-ore) 20)
+      (is (construir mundo :arsenal))
+      (is (executar-evento-guiado mundo :arcane-crystal))
+      (is (executar-evento-guiado mundo :sentinel))
+      (setf (getf (heroi-abates heroi) :sentinel) 6
+            (quantidade-material heroi :iron-ore) 20
+            (quantidade-material heroi :arcane-crystal) 10)
+      (is (construir mundo :observatory))
+      (is (executar-evento-guiado mundo :guardian))
+      (is (eq :concluida (etapa-campanha heroi)))
+      (is (= 4 (bonus-dano heroi)))
+      (is (= 125 (heroi-hp-max heroi)))
+      (is (= 100 (heroi-mana-max heroi))))))

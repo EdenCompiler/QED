@@ -59,7 +59,7 @@
     (setf (grafica-regioes-navegacao grafica) '((:ontologia 10 10 100 40)))
     (assert (eq :ontologia (comando-navegacao-no-ponto grafica 50 30)))
     (assert (null (comando-navegacao-no-ponto grafica 50 60)))
-    (dolist (tela '(:ontologia :guia :mundo :teoremas))
+    (dolist (tela '(:ontologia :acampamento :guia :mundo :teoremas))
       (acionar-navegacao grafica sessao tela)
       (assert (eq tela (tela-atual grafica)))
       (assert (eq (eq tela :teoremas) (editor-visivel-p grafica))))
@@ -79,7 +79,8 @@
     (assert (equal (editor-texto editor) "prova hipótese"))
     (format t "Editor: seleção Unicode, desfazer e refazer verificados.~%")))
 
-(defun executar (&key quadros duracao oculta captura (salvar t) ensaio ensaio-real mundo-ampliado ontologia)
+(defun executar (&key quadros duracao oculta captura (salvar t) ensaio ensaio-real mundo-ampliado ontologia
+                      acampamento posicao-inicial (largura-inicial 1440) (altura-inicial 900))
   (let* ((lwlgl.glfw:*glfw-platform-preference* (if (uiop:getenv "DISPLAY") :x11 :auto))
          (aviso nil)
          (sessao (if (and salvar (probe-file (salvo-padrao)))
@@ -91,6 +92,11 @@
                                   (let ((editor (novo-editor rascunho)))
                                     (setf (editor-sujo editor) (not (equal rascunho (biblioteca-texto biblioteca)))) editor))
                          (sessao-rascunhos sessao) (sessao-bibliotecas sessao))))
+    (when posicao-inicial
+      (let* ((mundo (mundo-ativo sessao)) (heroi (mundo-heroi mundo))
+             (x (max 12 (min (- (mundo-largura mundo) 12) posicao-inicial))))
+        (setf (heroi-x heroi) x (heroi-y heroi) (altura-chao mundo x)
+              (heroi-vx heroi) 0 (heroi-vy heroi) 0)))
     (when aviso (setf (editor-mensagem (aref editores (sessao-ativa sessao))) aviso))
     (multiple-value-bind (animacoes pendencias) (validar-assets)
       (lwlgl.glfw:with-glfw ()
@@ -99,12 +105,14 @@
         (lwlgl.glfw:window-hint lwlgl.glfw:context-version-minor 3)
         (lwlgl.glfw:window-hint lwlgl.glfw:opengl-profile lwlgl.glfw:opengl-core-profile)
         (when oculta (lwlgl.glfw:window-hint lwlgl.glfw:visible lwlgl.glfw:false))
-        (lwlgl.glfw:with-window (janela 1440 900 "QED — prove, então aja")
+        (lwlgl.glfw:with-window (janela largura-inicial altura-inicial "QED — prove, então aja")
           (lwlgl.glfw:make-context-current janela) (lwlgl.glfw:swap-interval (if oculta 0 1))
           (lwlgl.opengl:load-opengl :error-on-missing nil)
           (let ((grafica (iniciar-grafica)) (ultimo (lwlgl.glfw:get-time)) (acumulador 0.0d0)
                 (contador 0) (arrastando nil) (ultimo-salvo 0) (inicio (lwlgl.glfw:get-time)) (etapa 0))
-            (setf (grafica-mundo-ampliado grafica) mundo-ampliado (grafica-ontologia grafica) ontologia)
+            (setf (grafica-mundo-ampliado grafica) mundo-ampliado
+                  (grafica-ontologia grafica) ontologia
+                  (grafica-acampamento grafica) acampamento)
             (unwind-protect
                  (labels
                      ((editor-atual () (aref editores (sessao-ativa sessao)))
@@ -121,6 +129,9 @@
                       (comprar-area ()
                         (when (comprar-area-selecionada grafica sessao)
                           (setf (editor-revisao-validada (editor-atual)) -1)))
+                      (comprar-construcao ()
+                        (when (comprar-construcao-selecionada grafica sessao)
+                          (setf (editor-mensagem (editor-atual)) "Construção concluída e progresso salvo no próximo ciclo.")))
                       (atualizar-mouse ()
                         (multiple-value-bind (mx my) (lwlgl.glfw:cursor-position janela)
                           (multiple-value-bind (lj aj) (lwlgl.glfw:window-size janela)
@@ -163,6 +174,8 @@
                                     (mudar-tela grafica (if (eq (tela-atual grafica) :ontologia) :teoremas :ontologia)))
                                    ((= tecla lwlgl.glfw:key-f8)
                                     (mudar-tela grafica (if (eq (tela-atual grafica) :guia) :teoremas :guia)))
+                                   ((= tecla lwlgl.glfw:key-f9)
+                                    (mudar-tela grafica (if (eq (tela-atual grafica) :acampamento) :teoremas :acampamento)))
                                    ((and (= tecla lwlgl.glfw:key-f7) (or (grafica-guia grafica) (grafica-ontologia grafica)))
                                     (copiar-exemplo))
                                    ((= tecla lwlgl.glfw:key-f5)
@@ -188,6 +201,8 @@
                                            (selecionar-area grafica (mundo-heroi (mundo-ativo sessao)) 0 -1))
                                           ((= tecla lwlgl.glfw:key-down)
                                            (selecionar-area grafica (mundo-heroi (mundo-ativo sessao)) 0 1))))
+                                   ((grafica-acampamento grafica)
+                                    (when (= tecla lwlgl.glfw:key-enter) (comprar-construcao)))
                                    ((editor-visivel-p grafica) (tratar-tecla (editor-atual) sessao janela tecla modificadores)))
                            (error (erro) (setf (editor-mensagem (editor-atual)) (princ-to-string erro)))))))
                    (lwlgl.glfw:set-mouse-button-handler janela
@@ -206,6 +221,13 @@
                                             ((stringp comando)
                                              (setf (grafica-area-selecionada grafica) comando
                                                    (grafica-rolagem-area grafica) 0)))))
+                                   ((grafica-acampamento grafica)
+                                    (let ((comando (comando-acampamento-no-ponto grafica x y)))
+                                      (cond ((eq comando :construir) (comprar-construcao))
+                                            ((keywordp comando)
+                                             (setf (grafica-construcao-selecionada grafica) comando
+                                                   (grafica-mensagem-acampamento grafica)
+                                                   "Requisitos e efeitos desta construção estão exibidos abaixo.")))))
                                    ((editor-visivel-p grafica) (posicionar-mouse) (setf arrastando t))))))))
                    (lwlgl.glfw:set-cursor-position-handler janela
                      (lambda (janela x y)
@@ -219,7 +241,7 @@
                          (cond ((grafica-ontologia grafica)
                                 (when (> mx (* largura 0.64))
                                   (incf (grafica-rolagem-area grafica) (- (round (* y 3))))))
-                               ((grafica-mundo-ampliado grafica) nil)
+                               ((or (grafica-mundo-ampliado grafica) (grafica-acampamento grafica)) nil)
                                ((< mx (* largura 0.47)) (incf (grafica-rolagem-diagnostico grafica) (- (round (* y 3)))))
                                ((grafica-guia grafica) (incf (grafica-rolagem-guia grafica) (- (round (* y 3)))))
                                (t (mover-vertical (editor-atual) (- (round (* y 3))) nil))))))

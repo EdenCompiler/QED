@@ -66,16 +66,18 @@ empatados usam o menor identificador estável.
 
 Condições gerais:
 
-- `state`, `stat`, `position`, `resource-type`, `within-range`;
+- `state`, `stat`, `position`, `resource-type`, `inventory`, `within-range`;
 - `enemy-in-range`, `resource-nearby`, `enemy-nearby`;
-- `line-of-sight`, `mana-available`, `reachable`, `status`;
+- `enemy-state`, `gatherable`, `line-of-sight`, `mana-available`, `reachable`, `status`;
 - `and`, `or`, `not`, `exists`, `<`, `>`, `<=`, `>=`, `=`, `+`, `-`, `*`, `/`.
 
-Seletores: `self`, `enemy`, `resource`, `nearest` e
-`nearest-threat`. Distâncias da DSL são medidas em tiles de 16 pixels.
+Seletores: `self`, `enemy`, `resource`, `nearest`, `nearest-threat` e
+`quest-target`. `enemy` cobre slime, sentinela e guardião; consultas específicas
+por espécie continuam disponíveis. Distâncias usam tiles de 16 pixels.
 
 Ações do Guerreiro: `move-to`, `attack`, `interact`, `flee`, `wait` e
-`do`. `do` contém de uma a oito ações sequenciais.
+`do`. `interact :chop` só coleta madeira; `interact :mine` exige a Oficina e
+coleta ferro ou cristal. `do` contém de uma a oito ações sequenciais.
 
 Objetivos utilitários do Mago: `can-move`, `can-gather`, `can-flee` e
 `can-wait`. Objetivos mágicos: `(strikes spark enemy)` e, depois do
@@ -86,7 +88,7 @@ desbloqueio, `(strikes lightning enemy)`.
 | Axioma | Prova |
 |---|---|
 | `travel-law` | o destino é alcançável |
-| `gather-law` | o alvo é madeira e está a 1,875 tile |
+| `gather-law` | o alvo é coletável e está a 1,875 tile; minerais exigem Oficina |
 | `flee-law` | a ameaça está a até 12,5 tiles |
 | `wait-law` | sempre disponível |
 | `elemental-affinity` | o Mago tem foco e afinidade de tempestade |
@@ -108,6 +110,14 @@ Todos começam com quatro slots e as áreas fundamentais liberadas. Aos 30,
 Receber XP não libera essas áreas automaticamente. A escolha é validada pelo
 núcleo e afeta o avaliador imediatamente; copiar um exemplo não aplica a
 biblioteca. Os três pontos encerram a progressão desta fatia.
+
+## Campanha consultável
+
+`(inventory :wood)`, `(inventory :iron-ore)` e
+`(inventory :arcane-crystal)` retornam quantidades. `(enemy-state enemy
+:windup)` e `:recovery` permitem reagir aos golpes anunciados. `(quest-target)`
+retorna o recurso, inimigo ou marco alcançável necessário à etapa atual, ou
+ausência quando a próxima ação é uma compra na tela Acampamento.
 
 O vocabulário bilíngue completo está em `dados/vocabulario.sexp`. Essa é a
 única tabela que traduz gramática, classes, predicados, ações, axiomas e

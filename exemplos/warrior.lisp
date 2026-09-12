@@ -18,5 +18,5 @@
 
 (theorem explore
   :class fighter :priority 10
-  :premises ((resource-nearby))
-  :conclusion (move-to (nearest resource :wood)))
+  :premises ((reachable (quest-target)))
+  :conclusion (move-to (quest-target)))

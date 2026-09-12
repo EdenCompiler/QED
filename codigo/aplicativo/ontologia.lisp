@@ -7,7 +7,8 @@
   (loop for (comando . retangulo) in (grafica-regioes-ontologia grafica)
         when (dentro-retangulo-p x y retangulo) return comando))
 (defun editor-visivel-p (grafica)
-  (not (or (grafica-mundo-ampliado grafica) (grafica-guia grafica) (grafica-ontologia grafica))))
+  (not (or (grafica-mundo-ampliado grafica) (grafica-guia grafica)
+           (grafica-ontologia grafica) (grafica-acampamento grafica))))
 (defun selecionar-area (grafica heroi direcao-x direcao-y)
   "Move o foco na direção visual pedida, sem retornar pela borda oposta."
   (let* ((areas (areas-ontologia (heroi-classe heroi)))

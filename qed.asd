@@ -1,7 +1,8 @@
 (asdf:defsystem "qed/core"
   :description "QED: mundo determinístico sem dependências gráficas."
   :version "0.1.0" :depends-on ("uiop") :serial t
-  :components ((:file "codigo/nucleo/pacote") (:file "codigo/nucleo/mundo")
+  :components ((:file "codigo/nucleo/pacote") (:file "codigo/nucleo/catalogos")
+               (:file "codigo/nucleo/mundo") (:file "codigo/nucleo/campanha")
                (:file "codigo/nucleo/ontologia")))
 
 (asdf:defsystem "qed/logic"
@@ -20,6 +21,7 @@
                (:file "codigo/aplicativo/arte") (:file "codigo/aplicativo/grafica")
                (:file "codigo/aplicativo/tema")
                (:file "codigo/aplicativo/ontologia")
+               (:file "codigo/aplicativo/acampamento")
                (:file "codigo/aplicativo/janela") (:file "codigo/aplicativo/entrada")))
 
 (asdf:defsystem "qed/tests"

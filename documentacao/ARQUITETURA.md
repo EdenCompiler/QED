@@ -20,8 +20,10 @@ efeitos. Essa separação permite testar toda a lógica sem GLFW ou OpenGL.
 
 ## Mundo e ações
 
-A fase `dados/clareira.sexp` tem 90 × 17 tiles de 16 pixels, ou três telas de
-480 × 270. O carregador converte faixas sólidas do tilemap em retângulos AABB.
+A campanha combina `dados/clareira.sexp`, `dados/mina.sexp` e
+`dados/ruinas.sexp`: sete telas de 480 × 270 em um percurso contínuo de 3.360
+pixels. Largura, regiões, zonas úmidas, entidades e passagens vêm dos catálogos
+de dados. O carregador converte faixas sólidas dos tilemaps em retângulos AABB.
 O movimento consulta uma rota determinística de caminhada e salto; saltos são
 passos internos da intenção justificada.
 
@@ -30,9 +32,15 @@ prioridade e custo. Movimento, fuga e espera podem ser interrompidos por uma
 intenção de prioridade superior; ataque, coleta e manifestação terminam em um
 ponto seguro antes de outra intenção assumir.
 
-Madeira reaparece após seis segundos; slimes, após oito. Madeira concede 2 XP e
-um recurso; slime concede 10 XP. Morrer cancela a ação e retorna o autômato ao
-início depois de três segundos, preservando XP e inventário.
+Madeira, ferro, cristais, slimes e sentinelas têm recompensas e reaparecimento
+determinísticos. Passagens fechadas participam da colisão e do planejamento.
+Morrer cancela a ação e retorna o autômato à entrada da região atual depois de
+três segundos, preservando XP, inventário, construções e campanha. O Guardião
+recupera a vida após uma tentativa perdida e não reaparece depois da vitória.
+
+O estado de cada personagem inclui inventário por material, construções,
+objetivos, abates e regiões descobertas. Compras validam requisitos e saldo
+antes de descontar qualquer material.
 
 ## Avaliadores
 
@@ -52,15 +60,16 @@ porque as definições continuam como árvores inspecionáveis.
 
 ## Persistência
 
-O arquivo versionado (v2, com migração da v1) fica em `$XDG_DATA_HOME/qed/partida.sexp` ou
+O arquivo versionado (v3, com migração da v1 e v2) fica em `$XDG_DATA_HOME/qed/partida.sexp` ou
 `~/.local/share/qed/partida.sexp`. A gravação usa arquivo temporário, backup e
 renomeação atômica. A leitura aplica os mesmos limites básicos da DSL, valida
 campos, quantidades, tipos e intervalos, e nunca executa o conteúdo.
 
 O save separa a última biblioteca aplicada do rascunho do editor. Portanto, um
-erro de sintaxe pode ser salvo sem passar a comandar o personagem. A v2 inclui
-as áreas escolhidas e eventual crédito de migração; pontos e slots são
-recalculados e validados na leitura. Se o arquivo
+erro de sintaxe pode ser salvo sem passar a comandar o personagem. A v3 inclui
+inventário, construções, objetivos, abates, regiões e fases de combate, além das
+áreas de ontologia. Limites derivados e requisitos são recalculados e validados
+na leitura. Se o arquivo
 principal falhar, o backup é carregado. Se ambos falharem, a sessão nova abre
 com a gravação automática desativada para preservar os arquivos problemáticos.
 

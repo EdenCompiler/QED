@@ -44,11 +44,13 @@
       (setf (aref (grafica-vertices grafica) i) (coerce (+ x (* 2 (aref (grafica-vertices grafica) i))) 'single-float)
             (aref (grafica-vertices grafica) (1+ i)) (coerce (+ y (* 2 (aref (grafica-vertices grafica) (1+ i)))) 'single-float)))))
 (defun tela-atual (grafica)
-  (cond ((grafica-ontologia grafica) :ontologia) ((grafica-guia grafica) :guia)
+  (cond ((grafica-acampamento grafica) :acampamento)
+        ((grafica-ontologia grafica) :ontologia) ((grafica-guia grafica) :guia)
         ((grafica-mundo-ampliado grafica) :mundo) (t :teoremas)))
 (defun mudar-tela (grafica tela)
   (setf (grafica-ontologia grafica) (eq tela :ontologia)
         (grafica-guia grafica) (eq tela :guia)
+        (grafica-acampamento grafica) (eq tela :acampamento)
         (grafica-mundo-ampliado grafica) (eq tela :mundo)))
 (defun sob-mouse-p (grafica retangulo)
   (destructuring-bind (x y largura altura) retangulo
@@ -60,7 +62,7 @@
 (defun acionar-navegacao (grafica sessao comando)
   (if (eq comando :pausa)
       (setf (sessao-pausada sessao) (not (sessao-pausada sessao)))
-      (when (member comando '(:mundo :teoremas :ontologia :guia))
+      (when (member comando '(:mundo :teoremas :ontologia :acampamento :guia))
         (mudar-tela grafica comando))))
 (defun desenhar-cabecalho (grafica sessao)
   (let* ((largura (grafica-largura grafica)) (inicio (floor (* largura 0.47)))
@@ -74,8 +76,9 @@
                           (if (sessao-pausada sessao) "PAUSADO" "EM EXPLORAÇÃO")) (+ inicio 12) 16 *cor-verde*)
     (setf (grafica-regioes-navegacao grafica) nil)
     (loop with x = inicio
-          for (comando rotulo w) in '((:mundo "Mundo" 86) (:teoremas "Teoremas" 114)
-                                    (:ontologia "Ontologia" 126) (:guia "Guia" 80) (:pausa "Pausar" 108)) do
+          for (comando rotulo w) in '((:mundo "Mundo" 78) (:teoremas "Teoremas" 108)
+                                    (:ontologia "Ontologia" 118) (:acampamento "Acampamento" 138)
+                                    (:guia "Guia" 72) (:pausa "Pausar" 100)) do
       (let* ((retangulo (list x 42 w 34))
              (ativa (if (eq comando :pausa) (sessao-pausada sessao) (eq comando (tela-atual grafica))))
              (estilo (if (or ativa (sob-mouse-p grafica retangulo)) "selecionado" "botao")))

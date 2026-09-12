@@ -57,6 +57,7 @@
 
 (defparameter *assinaturas*
   '(("state" 1 1) ("stat" 1 1) ("position" 1 1) ("resource-type" 2 2)
+    ("inventory" 1 1) ("enemy-state" 2 2) ("quest-target" 0 0) ("gatherable" 1 1)
     ("within-range" 2 2) ("enemy-in-range" 1 1) ("resource-nearby" 0 1) ("enemy-nearby" 0 0)
     ("line-of-sight" 1 1) ("mana-available" 1 1) ("reachable" 1 1) ("status" 2 2)
     ("nearest" 1 2) ("nearest-threat" 0 0) ("and" 1 16) ("or" 1 16) ("not" 1 1)
@@ -102,7 +103,8 @@
     (when (and (equal operador "attack")
                (not (member (second expressao) '(":basic" ":heavy-strike") :test #'equal)))
       (rejeitar "Ataque não disponível."))
-    (when (and (equal operador "interact") (not (equal (second expressao) ":chop")))
+    (when (and (equal operador "interact")
+               (not (member (second expressao) '(":chop" ":mine") :test #'equal)))
       (rejeitar "Interação não disponível."))
     (when (and (equal operador "manifest")
                (not (and (member (second expressao) '(":spark" ":lightning-bolt") :test #'equal)

@@ -1,9 +1,14 @@
 # Arte final gerada
 
-- `gerados/`: cinco folhas originais produzidas por `image_gen`, intactas,
-  incluindo a caminhada do Mago gerada novamente após a revisão.
+Os projetos da campanha incluem `sentinela.aseprite`, `guardiao.aseprite`,
+`mina.aseprite`, `ruinas.aseprite`, recursos, passagens e as quatro construções.
+As referências originais geradas e os prompts estão em `gerados/` e
+`referencias/PROMPTS-CAMPANHA.md`.
+
+- `gerados/`: folhas originais produzidas por `image_gen`, intactas, incluindo
+  a campanha e a caminhada do Mago gerada novamente após a revisão.
 - `referencias/`: referência de direção, pesquisa e prompts usados.
-- `*.aseprite`: nove projetos nativos organizados por animação.
+- `*.aseprite`: projetos nativos organizados por personagem, cenário e objeto.
 - `previas/`: GIFs exportados pelo Aseprite para revisão.
 - `manifesto.lua`: retângulos de recorte, estados, tempos e pivôs.
 - `importar.lua`: preparação dos pixels gerados; não desenha poses.

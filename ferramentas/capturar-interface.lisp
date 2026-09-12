@@ -36,6 +36,16 @@
                        when (and (>= (heroi-xp heroi) 30) (eq (heroi-estado heroi) :attack)
                                  (< 0.25 (heroi-tempo-animacao heroi) 0.35)) do (return))
                  (capturar "mundo" :mundo)
+                 (capturar "acampamento" :acampamento)
+                 (let* ((mundo (mundo-ativo sessao)) (heroi (mundo-heroi mundo)))
+                   (setf (heroi-construcoes heroi) '(:workshop :shelter)
+                         (heroi-x heroi) 1860
+                         (heroi-y heroi) (altura-chao mundo 1860))
+                   (capturar "mina" :mundo)
+                   (setf (heroi-construcoes heroi) '(:observatory :arsenal :workshop :shelter)
+                         (heroi-x heroi) 2840
+                         (heroi-y heroi) (altura-chao mundo 2840))
+                   (capturar "observatorio" :mundo))
                  (alternar-personagem sessao)
                  (loop repeat 18000 do (avancar-sessao sessao)
                        when (>= (heroi-xp (mundo-heroi (mundo-ativo sessao))) 60) do (return))
@@ -47,5 +57,5 @@
                        when (eq (heroi-estado (mundo-heroi (mundo-ativo sessao))) :cast) do (return))
                  (capturar "teoremas" :teoremas)
                  (capturar "guia" :guia)
-                 (format t "Quatro capturas reais em build/capturas/. Nenhuma partida foi gravada.~%"))
+                 (format t "Sete capturas reais em build/capturas/. Nenhuma partida foi gravada.~%"))
             (encerrar-grafica grafica artes)))))))
